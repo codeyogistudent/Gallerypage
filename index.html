@@ -1,0 +1,235 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Persistent Gallery (Fixed)</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 0;
+            padding: 0;
+            line-height: 1.6;
+        }
+
+        header {
+            background-image: url('https://i.ibb.co/ZKcnW7P/Screenshot-2024-1206-214022.jpg');
+            background-size: cover;
+            background-position: center;
+            color: white;
+            height: 200px;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            text-align: center;
+            position: relative;
+        }
+
+        header::before {
+            content: "";
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.5);
+            z-index: 1;
+        }
+
+        header h1 {
+            z-index: 2;
+            margin: 0;
+            font-size: 2.5rem;
+        }
+
+        header p {
+            z-index: 2;
+            margin: 10px 0 0;
+        }
+
+        section {
+            padding: 20px;
+            max-width: 1200px;
+            margin: 20px auto;
+            text-align: center;
+        }
+
+        h2 {
+            margin-top: 0;
+            color: #333;
+            border-bottom: 2px solid #007BFF;
+            display: inline-block;
+            padding-bottom: 5px;
+        }
+
+        .gallery {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 20px;
+            margin-top: 20px;
+        }
+
+        .gallery-item {
+            text-align: center;
+        }
+
+        .gallery-item img {
+            width: 100%;
+            height: auto;
+            border-radius: 10px;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+            transition: transform 0.3s ease, box-shadow 0.3s ease;
+            cursor: pointer;
+        }
+
+        .gallery-item img:hover {
+            transform: scale(1.05);
+            box-shadow: 0 8px 16px rgba(0, 0, 0, 0.3);
+        }
+
+        .gallery-item p {
+            margin-top: 10px;
+            font-weight: bold;
+            color: #555;
+        }
+
+        #add-photo-container {
+            margin-top: 20px;
+            padding: 10px;
+            background-color: #f9f9f9;
+            border: 1px solid #ddd;
+            border-radius: 8px;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+        }
+
+        #add-photo-container input[type="file"],
+        #add-photo-container input[type="text"] {
+            margin: 10px 0;
+        }
+
+        #add-photo-container button {
+            padding: 10px 20px;
+            background-color: #007BFF;
+            color: white;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            transition: background-color 0.3s ease;
+        }
+
+        #add-photo-container button:hover {
+            background-color: #0056b3;
+        }
+
+        footer {
+            background-color: #333;
+            color: white;
+            padding: 10px 0;
+            text-align: center;
+            margin-top: 20px;
+        }
+    </style>
+</head>
+<body>
+
+    <header>
+        <h1>Kamlapur Govt. Higher Secondary School</h1>
+        <p>Persistent Photo Gallery with Titles</p>
+    </header>
+
+    <!-- Gallery Section -->
+    <section>
+        <h2>Our Gallery</h2>
+        <div class="gallery" id="gallery">
+            <!-- Images with titles will be loaded dynamically -->
+        </div>
+
+        <!-- Add Photo Container -->
+        <div id="add-photo-container">
+            <h3>Add a Photo</h3>
+            <input type="file" id="photo-upload" accept="image/*">
+            <input type="text" id="photo-title" placeholder="Enter photo title">
+            <button onclick="addPhoto()">Add Photo</button>
+        </div>
+    </section>
+
+    <footer>
+        &copy; 2024 Kamlapur Govt. Higher Secondary School. All Rights Reserved.
+    </footer>
+
+    <script>
+        const gallery = document.getElementById("gallery");
+
+        // Load gallery from LocalStorage
+        function loadGallery() {
+            const savedGallery = localStorage.getItem("gallery");
+            if (savedGallery) {
+                try {
+                    const galleryData = JSON.parse(savedGallery);
+                    galleryData.forEach(item => {
+                        createGalleryItem(item.image, item.title);
+                    });
+                } catch (e) {
+                    console.error("Error loading gallery from LocalStorage:", e);
+                }
+            }
+        }
+
+        // Save gallery to LocalStorage
+        function saveGallery() {
+            const galleryItems = Array.from(gallery.children).map(item => {
+                const img = item.querySelector("img").src;
+                const title = item.querySelector("p").textContent;
+                return { image: img, title: title };
+            });
+            localStorage.setItem("gallery", JSON.stringify(galleryItems));
+        }
+
+        // Create gallery item dynamically
+        function createGalleryItem(imageSrc, titleText) {
+            const galleryItem = document.createElement("div");
+            galleryItem.className = "gallery-item";
+
+            const img = document.createElement("img");
+            img.src = imageSrc;
+            img.alt = titleText;
+
+            const caption = document.createElement("p");
+            caption.textContent = titleText;
+
+            galleryItem.appendChild(img);
+            galleryItem.appendChild(caption);
+
+            gallery.appendChild(galleryItem);
+        }
+
+        // Add a photo with title
+        function addPhoto() {
+            const input = document.getElementById("photo-upload");
+            const title = document.getElementById("photo-title").value;
+
+            if (input.files && input.files[0] && title) {
+                const reader = new FileReader();
+
+                reader.onload = function (e) {
+                    // Add the image and title to the gallery
+                    createGalleryItem(e.target.result, title);
+
+                    // Save to LocalStorage
+                    saveGallery();
+
+                    alert("Photo added successfully!");
+                };
+
+                reader.readAsDataURL(input.files[0]); // Read file as Base64
+            } else {
+                alert("Please select a photo and enter a title.");
+            }
+        }
+
+        // Initialize gallery on page load
+        window.onload = loadGallery;
+    </script>
+</body>
+</html>
