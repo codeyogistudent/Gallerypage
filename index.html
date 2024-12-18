@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Persistent Gallery (Fixed)</title>
+    <title>Delete Uploaded Images</title>
     <style>
         body {
             font-family: Arial, sans-serif;
@@ -72,6 +72,7 @@
 
         .gallery-item {
             text-align: center;
+            position: relative;
         }
 
         .gallery-item img {
@@ -88,10 +89,19 @@
             box-shadow: 0 8px 16px rgba(0, 0, 0, 0.3);
         }
 
-        .gallery-item p {
+        .gallery-item button {
             margin-top: 10px;
-            font-weight: bold;
-            color: #555;
+            padding: 5px 10px;
+            background-color: #FF5733;
+            color: white;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            transition: background-color 0.3s ease;
+        }
+
+        .gallery-item button:hover {
+            background-color: #C70039;
         }
 
         #add-photo-container {
@@ -135,14 +145,14 @@
 
     <header>
         <h1>Kamlapur Govt. Higher Secondary School</h1>
-        <p>Persistent Photo Gallery with Titles</p>
+        <p>Photo Gallery with Delete Option</p>
     </header>
 
     <!-- Gallery Section -->
-    <section>
+    <section id="gallery">
         <h2>Our Gallery</h2>
-        <div class="gallery" id="gallery">
-            <!-- Images with titles will be loaded dynamically -->
+        <div class="gallery" id="gallery-container">
+            <!-- Images with titles and delete buttons will be loaded dynamically -->
         </div>
 
         <!-- Add Photo Container -->
@@ -159,72 +169,75 @@
     </footer>
 
     <script>
-        const gallery = document.getElementById("gallery");
+        const galleryContainer = document.getElementById('gallery-container');
 
         // Load gallery from LocalStorage
         function loadGallery() {
-            const savedGallery = localStorage.getItem("gallery");
+            const savedGallery = localStorage.getItem('gallery');
             if (savedGallery) {
-                try {
-                    const galleryData = JSON.parse(savedGallery);
-                    galleryData.forEach(item => {
-                        createGalleryItem(item.image, item.title);
-                    });
-                } catch (e) {
-                    console.error("Error loading gallery from LocalStorage:", e);
-                }
+                const galleryData = JSON.parse(savedGallery);
+                galleryData.forEach(item => {
+                    createGalleryItem(item.image, item.title);
+                });
             }
         }
 
         // Save gallery to LocalStorage
         function saveGallery() {
-            const galleryItems = Array.from(gallery.children).map(item => {
-                const img = item.querySelector("img").src;
-                const title = item.querySelector("p").textContent;
+            const galleryItems = Array.from(galleryContainer.children).map(item => {
+                const img = item.querySelector('img').src;
+                const title = item.querySelector('p').textContent;
                 return { image: img, title: title };
             });
-            localStorage.setItem("gallery", JSON.stringify(galleryItems));
+            localStorage.setItem('gallery', JSON.stringify(galleryItems));
         }
 
-        // Create gallery item dynamically
+        // Create gallery item with delete button
         function createGalleryItem(imageSrc, titleText) {
-            const galleryItem = document.createElement("div");
-            galleryItem.className = "gallery-item";
+            const galleryItem = document.createElement('div');
+            galleryItem.className = 'gallery-item';
 
-            const img = document.createElement("img");
+            const img = document.createElement('img');
             img.src = imageSrc;
             img.alt = titleText;
 
-            const caption = document.createElement("p");
+            const caption = document.createElement('p');
             caption.textContent = titleText;
+
+            const deleteButton = document.createElement('button');
+            deleteButton.textContent = 'Delete';
+            deleteButton.onclick = function () {
+                galleryItem.remove(); // Remove the item from DOM
+                saveGallery(); // Update LocalStorage
+                alert('Photo deleted successfully!');
+            };
 
             galleryItem.appendChild(img);
             galleryItem.appendChild(caption);
+            galleryItem.appendChild(deleteButton);
 
-            gallery.appendChild(galleryItem);
+            galleryContainer.appendChild(galleryItem);
         }
 
-        // Add a photo with title
+        // Add a new photo
         function addPhoto() {
-            const input = document.getElementById("photo-upload");
-            const title = document.getElementById("photo-title").value;
+            const input = document.getElementById('photo-upload');
+            const title = document.getElementById('photo-title').value;
 
             if (input.files && input.files[0] && title) {
                 const reader = new FileReader();
 
                 reader.onload = function (e) {
-                    // Add the image and title to the gallery
                     createGalleryItem(e.target.result, title);
 
-                    // Save to LocalStorage
-                    saveGallery();
+                    saveGallery(); // Save to LocalStorage
 
-                    alert("Photo added successfully!");
+                    alert('Photo added successfully!');
                 };
 
                 reader.readAsDataURL(input.files[0]); // Read file as Base64
             } else {
-                alert("Please select a photo and enter a title.");
+                alert('Please select a photo and enter a title.');
             }
         }
 
@@ -232,4 +245,5 @@
         window.onload = loadGallery;
     </script>
 </body>
-</html>
+    </html>
+        
